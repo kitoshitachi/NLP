@@ -1,4 +1,4 @@
-from typing import Iterator, List, Optional
+from typing import Iterator, Optional
 from torchtext.data.utils import get_tokenizer
 from pyvi.ViTokenizer import tokenize
 import re
