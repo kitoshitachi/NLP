@@ -15,4 +15,3 @@ vocab_vi = make_vocab(train_vi,'vi',3,specials,UNK_IDX)
 
 print("vocab size en:", len(vocab_en.get_itos()))
 print("vocab size vi:", len(vocab_vi.get_itos()))
-
