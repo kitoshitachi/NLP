@@ -1,0 +1,4 @@
+contractions==0.1.72
+pyvi==0.1.1
+requests==2.27.1
+torchtext==0.12.0
