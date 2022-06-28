@@ -1,19 +1,36 @@
 from typing import Iterator, List, Optional
 from torchtext.data.utils import get_tokenizer
-from pyvi.ViTokenizer import tokenize
-import re
 from torchtext.vocab import build_vocab_from_iterator
+from underthesea import word_tokenize
 
-tokenizer = {
-    'en': get_tokenizer('spacy', language ='en_core_web_sm'),
-    'vi': lambda text : list(map(lambda word: re.sub('_', ' ',word),tokenize(text).split()))
-}
+class Language:
+    def __init__(self, name: str = 'en'):
+        if name == 'en':
+            self.__name = 'en'
+            self.__tokenizer = get_tokenizer('spacy', language ='en_core_web_sm') 
+        else:
+            self.__name = 'vi'
+            self.__tokenizer = word_tokenize
 
-def yield_tokens(train_data, language='en'):
-    for line in train_data:
-        yield tokenizer[language](line)  
+        self.__vocab = None
 
-def make_vocab(train_iter: Iterator, language:str = 'en', min_freq:int = 1,specials: Optional[List[str]] = None, default_idx:int = 0):
-    vocab = build_vocab_from_iterator(yield_tokens(train_iter, language), min_freq, specials)
-    vocab.set_default_index(default_idx)
-    return vocab
+    def __yield_tokens(self, data):
+        for line in data:
+            for sentence in line:
+                yield self.__tokenizer(sentence) 
+
+    def make_vocab(self, train_iter: Iterator, min_freq:int = 1,specials: Optional[List[str]] = None, default_idx:int = 0):
+        self.__vocab = build_vocab_from_iterator(self.__yield_tokens(train_iter), min_freq, specials)
+        self.__vocab.set_default_index(default_idx)
+
+    @property
+    def name(self):
+        return self.__name
+
+    @property
+    def vocab(self):
+        return self.__vocab
+    
+    @property
+    def tokenizer(self):
+        return self.__tokenizer
