@@ -2,6 +2,7 @@
 
 requirement
 use cmd to install all pack
+
 pip install requirements.txt
 
 data
