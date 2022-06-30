@@ -1,36 +1,21 @@
 from typing import Iterator, List, Optional
-from torchtext.data.utils import get_tokenizer
 from torchtext.vocab import build_vocab_from_iterator
-from underthesea import word_tokenize
 
 class Language:
-    def __init__(self, name: str = 'en'):
-        if name == 'en':
-            self.__name = 'en'
-            self.__tokenizer = get_tokenizer('spacy', language ='en_core_web_sm') 
-        else:
-            self.__name = 'vi'
-            self.__tokenizer = word_tokenize
-
-        self.__vocab = None
-
+    def __init__(self, train_iter: Iterator, min_freq:int = 1):
+        self.specials = ["<unk>", "<pad>", "<sos>", "<eos>"]
+        self.__make_vocab(train_iter,min_freq)
     def __yield_tokens(self, data):
         for line in data:
-            for sentence in line:
-                yield self.__tokenizer(sentence) 
+            yield line  
 
-    def make_vocab(self, train_iter: Iterator, min_freq:int = 1,specials: Optional[List[str]] = None, default_idx:int = 0):
-        self.__vocab = build_vocab_from_iterator(self.__yield_tokens(train_iter), min_freq, specials)
-        self.__vocab.set_default_index(default_idx)
-
-    @property
-    def name(self):
-        return self.__name
+    def __make_vocab(self, train_iter: Iterator, min_freq:int = 1):
+        self.__vocab = build_vocab_from_iterator(self.__yield_tokens(train_iter), min_freq, self.specials)
+        self.__vocab.set_default_index(0)
 
     @property
     def vocab(self):
         return self.__vocab
     
-    @property
-    def tokenizer(self):
-        return self.__tokenizer
+    def lookup_indices(self, token_list: List[str]):
+        return [2,*self.vocab.lookup_indices(token_list),3]
