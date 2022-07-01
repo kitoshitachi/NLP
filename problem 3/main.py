@@ -1,27 +1,38 @@
-from read_data import DataLoader
+from read_data import DataLoader as read
 from vocab import Language
+from torch.nn.utils.rnn import pad_sequence
+from torch.utils.data import DataLoader
+
+import torch
+MODEL_NAME = "nlp.model"
+EPOCH = 10
+BATCHSIZE = 128
+LR = 0.0001
+DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+
 
 #read data
 url = "https://nlp.stanford.edu/projects/nmt/data/iwslt15.en-vi/"
 
-train = DataLoader(url +'train.en',url +'train.vi')
-test = DataLoader(url + 'tst2013.en',url + 'tst2013.vi')
-
-#check data
-print(train.vi[0])
-print(len(train.en))
+train = read(url +'train.en',url +'train.vi')
+val = read(url + 'tst2012.en',url + 'tst2012.vi')
+test = read(url + 'tst2013.en',url + 'tst2013.vi')
 
 #make vocab
 UNK_IDX, PAD_IDX, SOS_IDX, EOS_IDX = 0, 1, 2, 3
-specials = ["<unk>", "<pad>", "<sos>", "<eos>"]
 
-Vi = Language('vi')
-En = Language('en')
-Vi.make_vocab(train.vi,3,specials,UNK_IDX)
-En.make_vocab(train.en,3,specials,UNK_IDX)
+Vi = Language(train.vi,3)
+En = Language(train.en,3)
 
-#check vocab
-print("vocab size vi:", len(Vi.vocab.get_itos()))
-print("vocab size en:", len(En.vocab.get_itos()))
-for word in Vi.vocab.get_itos()[:5]:
-    print(word,Vi.vocab[word])
+#data preprocess
+
+train_en = [En.sentence_to_vector(line) for line in train.en]
+train_vi = [Vi.sentence_to_vector(line) for line in train.vi]
+
+#padding
+train_en = pad_sequence(train_en,batch_first= True,padding_value=UNK_IDX)
+train_vi = pad_sequence(train_vi,batch_first= True,padding_value=UNK_IDX)
+
+#make batch
+train_data = list(zip(train_en, train_vi))
+train_data = list(DataLoader(train_data,batch_size=BATCHSIZE,shuffle=True))
