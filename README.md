@@ -3,7 +3,7 @@
 requirement
 use cmd to install all pack
 
-pip install requirements.txt
+pip install -r requirements.txt
 
 data problem 3
 
