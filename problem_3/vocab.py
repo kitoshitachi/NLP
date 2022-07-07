@@ -1,25 +1,35 @@
-from typing import Iterator
-import torch
+from spacy import Vocab
 from torchtext.vocab import build_vocab_from_iterator
 from typing import List
+from torchtext.data import get_tokenizer
+from utils import Data
 class Language:
-    def __init__(self, train_iter: Iterator, min_freq:int = 1):
-        Language.specials = ["<unk>", "<pad>", "<sos>", "<eos>"]
-        self.__make_vocab(train_iter,min_freq)
-    def __yield_tokens(self, data):
-        for line in data:
-            yield line  
+  def __init__(self, data: Data, min_freq:int = 1):
+    specials = ["<unk>", "<pad>", "<sos>", "<eos>"]
+    Language.__tokenizer = {
+      'vi': lambda text: list(map(lambda word: re.sub('_', ' ', word), ViTokenizer.tokenize(text).split())),
+      'en': get_tokenizer('spacy', language='en_core_web_sm')
+    }
+    self.__vocab_en = build_vocab_from_iterator(self.__yield_tokens(data.en,'en'), min_freq, specials)
+    self.__vocab_en.set_default_index(0)
 
-    def __make_vocab(self, train_iter: Iterator, min_freq:int = 5):
-        self.__vocab = build_vocab_from_iterator(self.__yield_tokens(train_iter), min_freq, self.specials)
-        self.__vocab.set_default_index(0)
-    
-    @property
-    def vocab(self):
-        return self.__vocab
-    
-    def sentence_to_vector(self, sent:List[str]):
-        return torch.tensor(self.__vocab.lookup_indices(sent),dtype = torch.int64)
-    
-    def vector_to_sentence(self, vector:List[int]):
-        return self.__vocab.lookup_tokens(vector)
+    self.__vocab_vi = build_vocab_from_iterator(self.__yield_tokens(data.vi,'vi'), min_freq, specials)
+    self.__vocab_vi.set_default_index(0)
+  
+  def __yield_tokens(self, data:List[str] , language:str = 'en'):
+    for line in data:
+      yield Language.__tokenizer[language](line)
+
+  @property
+  def en(self):
+    return self.__vocab_en
+
+  @property
+  def vi(self):
+    return self.__vocab_vi
+  
+  def text_pipeline(self, data:List[str], language:str = 'en') -> List[str]:
+    if language == 'en':
+      return [self.__vocab_en.lookup_tokens([2,*self.__vocab_en.lookup_indices(Language.__tokenizer[language](line)),3]) for line in data]
+    if language == 'vi':
+      return [self.__vocab_vi.lookup_tokens([2,*self.__vocab_vi.lookup_indices(Language.__tokenizer[language](line)),3]) for line in data]
