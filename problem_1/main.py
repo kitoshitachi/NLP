@@ -1,11 +1,12 @@
-
+# -*- coding: utf-8 -*-
 import torch
 import matplotlib.pylab as plt
 import numpy as np
 from torchvision import datasets
 from torch.utils.data import DataLoader
 from torchvision.transforms import Compose,RandomHorizontalFlip,Normalize,ToTensor
-import myVGG
+
+from myVGG import VGGNet, test, test_every_classed, train
 
 # cifar_trainset = datasets.CIFAR10(root='./', train=True, download=True  )
 # data = cifar_trainset.data / 255 # data is numpy array
@@ -17,7 +18,7 @@ import myVGG
 
 mean = np.array([0.49139968, 0.48215841, 0.44653091])
 std = np.array([0.24703223, 0.24348513, 0.26158784])
-batch_size = 4
+batch_size = 32
 transforms = [ToTensor(), Normalize(std, mean)]
 
 train_dataset = datasets.CIFAR10(
@@ -60,9 +61,11 @@ for idx in np.arange(4):
 MODEL_NAME = "myVGG.model"
 LR = 1e-3
 momentum = 0.9
-EPOCH = 30
+EPOCH = 10
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-myVGG.train(train_loader,device=DEVICE)
-myVGG.test(test_loader,device=DEVICE)
-myVGG.test_every_classed(test_loader,classes,device=DEVICE)
+train(train_loader, epochs= EPOCH,model_name= MODEL_NAME,device=DEVICE)
+
+test(test_loader,model_name= MODEL_NAME,device=DEVICE)
+
+test_every_classed(test_loader,classes,device=DEVICE,model_name= MODEL_NAME)

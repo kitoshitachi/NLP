@@ -41,8 +41,7 @@ class VGGNet(Module):
         x = relu(self.fc3(x))
         return x
 
-
-def train(train_loader, epochs=30, lr=1e-3, momentum=0.9, device='cpu', model_name='myVGG', pre_train=False):
+def train(train_loader, epochs=30, lr=1e-3, momentum=0.9, device='cpu', model_name='myVGG.model', pre_train=False):
     model = VGGNet().to(device)
     if pre_train:
         try:
@@ -55,9 +54,9 @@ def train(train_loader, epochs=30, lr=1e-3, momentum=0.9, device='cpu', model_na
     optimizer = optim.SGD(model.parameters(), lr=lr, momentum=momentum)
     for epoch in range(epochs):
         loss = 0
-        if epoch == 6:  # 6 epoch loss increase so reduce lr
-            optimizer = optim.SGD(model.parameters(),
-                                  lr=lr/10, momentum=momentum)
+        # if epoch == 6:  # 6 epoch loss increase so reduce lr
+        #     optimizer = optim.SGD(model.parameters(),
+        #                           lr=lr/10, momentum=momentum)
 
         for images, labels in train_loader:
             images = images.to(device)
@@ -73,8 +72,7 @@ def train(train_loader, epochs=30, lr=1e-3, momentum=0.9, device='cpu', model_na
         print(f"epoch: {epoch} loss: {loss / 2000:.3f}")
     save(model.state_dict(), model_name)
 
-
-def test(test_loader,device='cpu', model_name='myVGG'):
+def test(test_loader,device='cpu', model_name='myVGG.model'):
     total = len(test_loader.dataset)
     correct = 0
     model = VGGNet().to(device)
@@ -96,7 +94,7 @@ def test(test_loader,device='cpu', model_name='myVGG'):
     print("total: ", total)
     print(f"accuaracy: {correct/float(total)*100}%",)
 
-def test_every_classed(test_loader, classes, device='cpu', model_name='myVGG'):
+def test_every_classed(test_loader, classes, device='cpu', model_name='myVGG.model'):
     correct_pred = {classname: 0 for classname in classes}
     total_pred = {classname: 0 for classname in classes}
     model = VGGNet().to(device)
